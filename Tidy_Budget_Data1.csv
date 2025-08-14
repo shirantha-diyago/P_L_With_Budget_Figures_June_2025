@@ -1,0 +1,73 @@
+Category,Period_Type,Value,Period,Type
+,Actual,,,Actual
+Volume ,Actual,0.0,,Actual
+Revenue,Actual,3144646.67456,,Actual
+Cost of Sales,Actual,-2446941.76945,,Actual
+Direct Materials,Actual,0.0,,Actual
+Variable Overheads,Actual,-2484379.3717938852,,Actual
+Fixed Overheads,Actual,0.0,,Actual
+Finance Expenses,Actual,0.0,,Actual
+Logistics Expenses ,Actual,0.0,,Actual
+Gross Profit,Actual,697704.90511,,Actual
+Other Income,Actual,84097.65271,,Actual
+Exchange Gain/(Loss),Actual,47641.23680999999,,Actual
+Finance Income ,Actual,2093.70038,,Actual
+Other Operating Income ,Actual,34362.71552,,Actual
+Operating Expenses,Actual,-506061.14081,,Actual
+Selling & Distribution Expenses,Actual,-5263.355520000001,,Actual
+Administration Expenses,Actual,-500797.78529,,Actual
+Other Operating Expenses,Actual,0.0,,Actual
+Operating Profit,Actual,275741.41701000003,,Actual
+Finance Expenses,Actual,-14435.82313,,Actual
+Profit Before Management Fee & Tax,Actual,261305.59388,,Actual
+Management Fees,Actual,-24102.5641,,Actual
+Profit Before Tax,Actual,237203.02978,,Actual
+Tax,Actual,-47440.60836,,Actual
+Profit After Tax,Actual,189762.42142000003,,Actual
+Dividends Paid ,Actual,-118513.35590152061,,Actual
+Retained Profit,Actual,71249.06551847939,,Actual
+Retained Profit,Actual,,,Actual
+GP%,Actual,0.22187068288287845,,Actual
+PBT%,Actual,0.07543074129725226,,Actual
+PAT%,Actual,0.060344592273328015,,Actual
+PAT%,Actual,,,Actual
+Div % (PAT after Mgt Fee),Actual,0.6245354323299643,,Actual
+Div % (PAT Before Mgt Fee),Actual,0.5541503468338327,,Actual
+Div % (PAT Before Mgt Fee),Actual,,,Actual
+Income Tax %,Actual,0.20000001013477778,,Actual
+,Variance,,,Variance
+Volume ,Variance,,,Variance
+Revenue,Variance,92332.96727940452,,Variance
+Cost of Sales,Variance,-57307.62711939507,,Variance
+Direct Materials,Variance,0.0,,Variance
+Variable Overheads,Variance,-25948.988163280184,,Variance
+Fixed Overheads,Variance,0.0,,Variance
+Finance Expenses,Variance,0.0,,Variance
+Logistics Expenses ,Variance,0.0,,Variance
+Gross Profit,Variance,35025.34016000945,,Variance
+Other Income,Variance,43124.360381236,,Variance
+Exchange Gain/(Loss),Variance,25827.47107,,Variance
+Finance Income ,Variance,-395.72573263698644,,Variance
+Other Operating Income ,Variance,17692.615043872986,,Variance
+Operating Expenses,Variance,-43962.69816143066,,Variance
+Selling & Distribution Expenses,Variance,-1115.9140978,,Variance
+Administration Expenses,Variance,-42846.78406363065,,Variance
+Other Operating Expenses,Variance,0.0,,Variance
+Operating Profit,Variance,34187.0023798148,,Variance
+Finance Expenses,Variance,-2491.238238921331,,Variance
+Profit Before Management Fee & Tax,Variance,31695.764140893472,,Variance
+Management Fees,Variance,-6102.5641,,Variance
+Profit Before Tax,Variance,25593.20004089347,,Variance
+Tax,Variance,-11307.519693130016,,Variance
+Profit After Tax,Variance,14285.680347763453,,Variance
+Dividends Paid ,Variance,-25503.21231540209,,Variance
+Retained Profit,Variance,-11217.531967638635,,Variance
+Retained Profit,Variance,,,Variance
+GP%,Variance,,,Variance
+PBT%,Variance,,,Variance
+PAT%,Variance,,,Variance
+PAT%,Variance,,,Variance
+Div % (PAT after Mgt Fee),Variance,,,Variance
+Div % (PAT Before Mgt Fee),Variance,,,Variance
+Div % (PAT Before Mgt Fee),Variance,,,Variance
+Income Tax %,Variance,,,Variance
