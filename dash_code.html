@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Performance Dashboard</title>
+    
+    <!-- React and related libraries -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Recharts for charts -->
+    <script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+    
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="dashboard-root"></div>
+
+    <script>
+        // React components
+        const { useState, useMemo, useEffect } = React;
+        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } = Recharts;
+
+        // Lucide Icons
+        const TrendingUp = () => React.createElement('svg', {
+            className: "h-4 w-4 mr-1",
+            fill: "none",
+            stroke: "currentColor",
+            viewBox: "0 0 24 24"
+        }, React.createElement('path', {
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            strokeWidth: "2",
+            d: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+        }));
+
+        const TrendingDown = () => React.createElement('svg', {
+            className: "h-4 w-4 mr-1",
+            fill: "none",
+            stroke: "currentColor",
+            viewBox: "0 0 24 24"
+        }, React.createElement('path', {
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            strokeWidth: "2",
+            d: "M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
+        }));
+
+        const DollarSign = ({ className }) => React.createElement('svg', {
+            className: className,
+            fill: "none",
+            stroke: "currentColor",
+            viewBox: "0 0 24 24"
+        }, React.createElement('path', {
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            strokeWidth: "2",
+            d: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+        }));
+
+        const AlertCircle = ({ className }) => React.createElement('svg', {
+            className: className,
+            fill: "none",
+            stroke: "currentColor",
+            viewBox: "0 0 24 24"
+        }, React.createElement('circle', { cx: "12", cy: "12", r: "10" }), React.createElement('line', { x1: "12", y1: "8", x2: "12", y2: "12" }), React.createElement('line', { x1: "12", y1: "16", x2: "12.01", y2: "16" }));
+
+        const CheckCircle = ({ className }) => React.createElement('svg', {
+            className: className,
+            fill: "none",
+            stroke: "currentColor",
+            viewBox: "0 0 24 24"
+        }, React.createElement('path', {
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            strokeWidth: "2",
+            d: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        }));
+
+        const BudgetDashboard = () => {
+            const [csvData, setCsvData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            // Load CSV data
+            useEffect(() => {
+                const loadData = async () => {
+                    try {
+                        const response = await fetch('Tidy_Budget_Data1.csv');
+                        if (!response.ok) {
+                            throw new Error('CSV file not found');
+                        }
+                        const csvText = await response.text();
+                        
+                        const parsed = Papa.parse(csvText, {
+                            header: true,
+                            skipEmptyLines: true,
+                            dynamicTyping: true,
+                            delimitersToGuess: [',', '\t', '|', ';']
+                        });
+                        
+                        // Clean the parsed data
+                        const cleanedData = parsed.data.filter(row => 
+                            row.Category && 
+                            row.Category.trim() !== '' && 
+                            row.Type && 
+                            row.Type.trim() !== ''
+                        ).map(row => ({
+                            ...row,
+                            Category: row.Category.trim(),
+                            Type: row.Type.trim(),
+                            Value: typeof row.Value === 'string' ? parseFloat(row.Value) || 0 : row.Value || 0
+                        }));
+                        
+                        setCsvData(cleanedData);
+                        setLoading(false);
+                    } catch (error) {
+                        console.error('Error loading CSV:', error);
+                        setError('Error loading CSV file. Please make sure Tidy_Budget_Data1.csv is uploaded.');
+                        setLoading(false);
+                    }
+                };
+                loadData();
+            }, []);
+
+            const processedData = useMemo(() => {
+                if (!csvData || csvData.length === 0) return null;
+
+                // Separate actual and variance data
+                const actualData = csvData.filter(row => 
+                    row.Type === 'Actual' && 
+                    row.Category && 
+                    row.Category.trim() !== '' && 
+                    typeof row.Value === 'number' && 
+                    !isNaN(row.Value) && 
+                    row.Value !== 0
+                );
+                
+                const varianceData = csvData.filter(row => 
+                    row.Type === 'Variance' && 
+                    row.Category && 
+                    row.Category.trim() !== '' && 
+                    typeof row.Value === 'number' && 
+                    !isNaN(row.Value)
+                );
+
+                // Create budget data (Budget = Actual - Variance)
+                const budgetVsActual = actualData.map(actual => {
+                    const variance = varianceData.find(v => v.Category === actual.Category);
+                    const varianceValue = variance ? variance.Value : 0;
+                    const budgetValue = actual.Value - varianceValue;
+                    
+                    return {
+                        category: actual.Category,
+                        actual: actual.Value,
+                        budget: budgetValue,
+                        variance: varianceValue,
+                        variancePercent: budgetValue !== 0 ? (varianceValue / Math.abs(budgetValue)) * 100 : 0
+                    };
+                });
+
+                // Filter for key financial metrics
+                const keyMetrics = budgetVsActual.filter(item => 
+                    ['Revenue', 'Cost of Sales', 'Gross Profit', 'Operating Profit', 'Profit Before Tax', 'Profit After Tax']
+                    .includes(item.category)
+                );
+
+                // Get all expense/income categories for detailed view
+                const allMetrics = budgetVsActual.filter(item => 
+                    !item.category.includes('%') && 
+                    item.category !== 'Volume' &&
+                    item.actual !== 0
+                );
+
+                // Profitability ratios
+                const ratios = actualData.filter(row => 
+                    row.Category.includes('%') && 
+                    row.Value !== null && 
+                    !isNaN(row.Value) &&
+                    !row.Category.includes('Div %')
+                ).map(row => ({
+                    metric: row.Category,
+                    value: row.Value
+                }));
+
+                return {
+                    keyMetrics,
+                    allData: allMetrics,
+                    ratios
+                };
+            }, [csvData]);
+
+            if (loading) {
+                return React.createElement('div', { className: "flex items-center justify-center h-64" }, 'Loading budget data...');
+            }
+
+            if (error) {
+                return React.createElement('div', { className: "flex items-center justify-center h-64 text-red-500" }, error);
+            }
+
+            if (!processedData) {
+                return React.createElement('div', { className: "flex items-center justify-center h-64 text-red-500" }, 'No data available');
+            }
+
+            const { keyMetrics, allData, ratios } = processedData;
+
+            // Format currency
+            const formatCurrency = (value) => {
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }).format(value);
+            };
+
+            // KPI Card component
+            const KPICard = ({ title, actual, budget, variance, icon: Icon }) => {
+                const isPositive = variance > 0;
+                const variancePercent = budget !== 0 ? (variance / Math.abs(budget)) * 100 : 0;
+                
+                return React.createElement('div', { className: "bg-white rounded-lg shadow-md p-6 border" }, [
+                    React.createElement('div', { className: "flex items-center justify-between mb-4", key: "header" }, [
+                        React.createElement('h3', { className: "text-sm font-medium text-gray-600", key: "title" }, title),
+                        React.createElement(Icon, { className: "h-5 w-5 text-gray-400", key: "icon" })
+                    ]),
+                    React.createElement('div', { className: "space-y-2", key: "content" }, [
+                        React.createElement('div', { className: "text-2xl font-bold text-gray-900", key: "actual" }, formatCurrency(actual)),
+                        React.createElement('div', { className: "text-sm text-gray-500", key: "budget" }, `Budget: ${formatCurrency(budget)}`),
+                        React.createElement('div', { 
+                            className: `flex items-center text-sm ${isPositive ? 'text-green-600' : 'text-red-600'}`,
+                            key: "variance"
+                        }, [
+                            React.createElement(isPositive ? TrendingUp : TrendingDown, { key: "trend" }),
+                            `${formatCurrency(Math.abs(variance))} (${Math.abs(variancePercent).toFixed(1)}%)`
+                        ])
+                    ])
+                ]);
+            };
+
+            return React.createElement('div', { className: "min-h-screen bg-gray-50 p-6" }, [
+                React.createElement('div', { className: "max-w-7xl mx-auto", key: "main" }, [
+                    // Header
+                    React.createElement('div', { className: "mb-8", key: "header" }, [
+                        React.createElement('h1', { className: "text-3xl font-bold text-gray-900 mb-2", key: "title" }, 'Budget Performance Dashboard'),
+                        React.createElement('p', { className: "text-gray-600", key: "subtitle" }, 'Actual vs Budget Analysis for Key Business Metrics')
+                    ]),
+                    
+                    // KPI Cards
+                    React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8", key: "kpis" },
+                        keyMetrics.slice(0, 4).map((metric, index) => 
+                            React.createElement(KPICard, {
+                                key: metric.category,
+                                title: metric.category,
+                                actual: metric.actual,
+                                budget: metric.budget,
+                                variance: metric.variance,
+                                icon: index === 0 ? DollarSign : index === 1 ? AlertCircle : CheckCircle
+                            })
+                        )
+                    ),
+                    
+                    // Charts
+                    React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8", key: "charts" }, [
+                        // Budget vs Actual Chart
+                        React.createElement('div', { className: "bg-white rounded-lg shadow-md p-6", key: "budget-chart" }, [
+                            React.createElement('h2', { className: "text-xl font-semibold text-gray-900 mb-4", key: "title" }, 'Budget vs Actual Performance'),
+                            React.createElement(ResponsiveContainer, { width: "100%", height: 400, key: "container" },
+                                React.createElement(BarChart, { data: keyMetrics, margin: { top: 20, right: 30, left: 20, bottom: 60 } }, [
+                                    React.createElement(CartesianGrid, { strokeDasharray: "3 3", key: "grid" }),
+                                    React.createElement(XAxis, { 
+                                        dataKey: "category", 
+                                        angle: -45,
+                                        textAnchor: "end",
+                                        height: 80,
+                                        fontSize: 12,
+                                        key: "xaxis"
+                                    }),
+                                    React.createElement(YAxis, { 
+                                        tickFormatter: (value) => `$${(value/1000).toFixed(0)}k`,
+                                        key: "yaxis"
+                                    }),
+                                    React.createElement(Tooltip, { 
+                                        formatter: (value) => formatCurrency(value),
+                                        key: "tooltip"
+                                    }),
+                                    React.createElement(Legend, { key: "legend" }),
+                                    React.createElement(Bar, { dataKey: "budget", fill: "#8884d8", name: "Budget", key: "budget-bar" }),
+                                    React.createElement(Bar, { dataKey: "actual", fill: "#82ca9d", name: "Actual", key: "actual-bar" })
+                                ])
+                            )
+                        ]),
+                        
+                        // Variance Chart
+                        React.createElement('div', { className: "bg-white rounded-lg shadow-md p-6", key: "variance-chart" }, [
+                            React.createElement('h2', { className: "text-xl font-semibold text-gray-900 mb-4", key: "title" }, 'Variance Analysis'),
+                            React.createElement(ResponsiveContainer, { width: "100%", height: 400, key: "container" },
+                                React.createElement(BarChart, { data: keyMetrics, margin: { top: 20, right: 30, left: 20, bottom: 60 } }, [
+                                    React.createElement(CartesianGrid, { strokeDasharray: "3 3", key: "grid" }),
+                                    React.createElement(XAxis, { 
+                                        dataKey: "category", 
+                                        angle: -45,
+                                        textAnchor: "end",
+                                        height: 80,
+                                        fontSize: 12,
+                                        key: "xaxis"
+                                    }),
+                                    React.createElement(YAxis, { 
+                                        tickFormatter: (value) => `${value.toFixed(1)}%`,
+                                        key: "yaxis"
+                                    }),
+                                    React.createElement(Tooltip, { 
+                                        formatter: (value) => `${value.toFixed(2)}%`,
+                                        key: "tooltip"
+                                    }),
+                                    React.createElement(Bar, { 
+                                        dataKey: "variancePercent", 
+                                        name: "Variance %",
+                                        key: "variance-bar"
+                                    }, keyMetrics.map((entry, index) => 
+                                        React.createElement(Cell, { 
+                                            key: `cell-${index}`, 
+                                            fill: entry.variancePercent > 0 ? '#82ca9d' : '#ff7c7c' 
+                                        })
+                                    ))
+                                ])
+                            )
+                        ])
+                    ]),
+                    
+                    // Ratios section
+                    ratios.length > 0 ? React.createElement('div', { className: "bg-white rounded-lg shadow-md p-6 mb-8", key: "ratios" }, [
+                        React.createElement('h2', { className: "text-xl font-semibold text-gray-900 mb-4", key: "title" }, 'Key Profitability Ratios'),
+                        React.createElement(ResponsiveContainer, { width: "100%", height: 300, key: "container" },
+                            React.createElement(BarChart, { data: ratios, margin: { top: 20, right: 30, left: 20, bottom: 5 } }, [
+                                React.createElement(CartesianGrid, { strokeDasharray: "3 3", key: "grid" }),
+                                React.createElement(XAxis, { dataKey: "metric", key: "xaxis" }),
+                                React.createElement(YAxis, { 
+                                    tickFormatter: (value) => `${(value * 100).toFixed(1)}%`,
+                                    key: "yaxis"
+                                }),
+                                React.createElement(Tooltip, { 
+                                    formatter: (value) => `${(value * 100).toFixed(2)}%`,
+                                    key: "tooltip"
+                                }),
+                                React.createElement(Bar, { dataKey: "value", fill: "#ffc658", key: "bar" })
+                            ])
+                        )
+                    ]) : null,
+                    
+                    // Key Insights
+                    React.createElement('div', { className: "bg-blue-50 rounded-lg p-6 mt-8", key: "insights" }, [
+                        React.createElement('h2', { className: "text-xl font-semibold text-blue-900 mb-4", key: "title" }, 'Key Business Insights'),
+                        React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 gap-4", key: "content" }, [
+                            React.createElement('div', { className: "space-y-2", key: "highlights" }, [
+                                React.createElement('h3', { className: "font-medium text-blue-800", key: "title" }, 'Performance Highlights:'),
+                                React.createElement('ul', { className: "text-blue-700 space-y-1", key: "list" },
+                                    keyMetrics
+                                        .filter(m => m.variancePercent > 5)
+                                        .slice(0, 3)
+                                        .map((metric, i) => 
+                                            React.createElement('li', { key: i }, `• ${metric.category}: ${formatCurrency(metric.variance)} above budget`)
+                                        )
+                                )
+                            ]),
+                            React.createElement('div', { className: "space-y-2", key: "concerns" }, [
+                                React.createElement('h3', { className: "font-medium text-blue-800", key: "title" }, 'Areas Needing Attention:'),
+                                React.createElement('ul', { className: "text-blue-700 space-y-1", key: "list" },
+                                    keyMetrics
+                                        .filter(m => m.variancePercent < -5)
+                                        .slice(0, 3)
+                                        .map((metric, i) => 
+                                            React.createElement('li', { key: i }, `• ${metric.category}: ${formatCurrency(Math.abs(metric.variance))} below budget`)
+                                        )
+                                )
+                            ])
+                        ])
+                    ])
+                ])
+            ]);
+        };
+
+        // Render the dashboard
+        const root = ReactDOM.createRoot(document.getElementById('dashboard-root'));
+        root.render(React.createElement(BudgetDashboard));
+    </script>
+</body>
+</html>
